@@ -27,6 +27,20 @@
         "mac": "Command+Shift+L"
       },
       "description": "Save selected text"
+    },
+    "next-line": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+Up",
+        "mac": "Command+Shift+Up"
+      },
+      "description": "Next line of response"
+    },
+    "previous-line": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+Down",
+        "mac": "Command+Shift+Down"
+      },
+      "description": "Previous line of response"
     }
   }
 }
