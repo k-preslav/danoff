@@ -1,4 +1,6 @@
 chrome.commands.onCommand.addListener((command) => {
+  console.log("Background:", command);
+
   if (command === "change-url") {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (!tabs[0]) return;
@@ -16,8 +18,20 @@ chrome.commands.onCommand.addListener((command) => {
 
       chrome.scripting.executeScript({
         target: { tabId: tabs[0].id },
-        func: () => window.getSelection().toString()
+        func: () => {
+          const selection = window.getSelection().toString();
+          if (selection) {
+            console.log("Danoff Extension: Text selected:", selection);
+          } else {
+            console.log("Danoff Extension: No text selected.");
+          }
+          return selection;
+        }
       }, (results) => {
+        if (chrome.runtime.lastError) {
+           console.error("Execution failed:", chrome.runtime.lastError);
+           return;
+        }
         if (results && results[0] && results[0].result) {
           const text = results[0].result;
           chrome.storage.local.set({ savedSelection: text }, () => {
