@@ -4,16 +4,13 @@
   "description": "Danoff.",
   "version": "1.0",
   "manifest_version": 3,
-
   "background": {
     "service_worker": "background.js"
   },
-
   "permissions": [
     "scripting",
     "activeTab"
   ],
-
   "commands": {
     "change-url": {
       "suggested_key": {
