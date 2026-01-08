@@ -1,0 +1,26 @@
+{
+  "name": "danoff",
+  "short_name": "danoff",
+  "description": "Danoff.",
+  "version": "1.0",
+  "manifest_version": 3,
+
+  "background": {
+    "service_worker": "background.js"
+  },
+
+  "permissions": [
+    "scripting",
+    "activeTab"
+  ],
+
+  "commands": {
+    "change-url": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+K",
+        "mac": "Command+Shift+K"
+      },
+      "description": "Change URL without navigation"
+    }
+  }
+}
