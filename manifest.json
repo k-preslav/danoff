@@ -9,8 +9,10 @@
   },
   "permissions": [
     "scripting",
-    "activeTab"
+    "activeTab",
+    "storage"
   ],
+
   "commands": {
     "change-url": {
       "suggested_key": {
@@ -18,6 +20,13 @@
         "mac": "Command+Shift+K"
       },
       "description": "Change URL without navigation"
+    },
+    "save-selected-text": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+L",
+        "mac": "Command+Shift+L"
+      },
+      "description": "Save selected text"
     }
   }
 }
