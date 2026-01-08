@@ -7,8 +7,7 @@ chrome.commands.onCommand.addListener((command) => {
 
       chrome.scripting.executeScript({
         target: { tabId: tabs[0].id },
-        func: () => {
-                  func: async() => {
+        func: async() => {
           history.replaceState({}, "", `/Please·Wait`);
 
           const res = await fetch("https://danoff.loophole.site/answer", {
