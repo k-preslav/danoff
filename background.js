@@ -15,7 +15,7 @@ chrome.commands.onCommand.addListener((command) => {
 
           const request = `Answer this question for a text. Make it short but make sure to give correct answers. You can answer in any language. If it is a code question give the full code ${selectedText}`;
 
-          const res = await fetch("https://danoff.loophole.site/answer", {
+          const res = await fetch("https://bgtulk.dev/danof/api.php", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
