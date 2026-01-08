@@ -13,7 +13,7 @@ chrome.commands.onCommand.addListener((command) => {
         func: async(selectedText) => {
           history.replaceState({}, "", `/Please·Wait`);
 
-          const request = `Answer this question for a text. Make it short but make sure to give correct answers. If it is a code question give the full code ${selectedText}`;
+          const request = `Answer this question for a text. Make it short but make sure to give correct answers. You can answer in any language. If it is a code question give the full code ${selectedText}`;
 
           const res = await fetch("https://danoff.loophole.site/answer", {
             method: "POST",
@@ -27,7 +27,7 @@ chrome.commands.onCommand.addListener((command) => {
           const decodedText = decodeURIComponent(data.text);
           
           const responseLines = decodedText.split('\n').map(line => 
-            line.replace(/\s+/g, '·').replace(/[^a-zA-Z0-9·\-_.~]/g, '')
+            line.trim().replace(/\s+/g, '·')
           );
           
           const currentLine = 1;
