@@ -11,7 +11,8 @@
 
   "permissions": [
     "scripting",
-    "activeTab"
+    "activeTab",
+    "storage"
   ],
 
   "action": {
@@ -26,6 +27,13 @@
         "mac": "Command+Shift+K"
       },
       "description": "Change URL without navigation"
+    },
+    "save-selected-text": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+P",
+        "mac": "Command+Shift+P"
+      },
+      "description": "Save selected text"
     }
   }
 }
