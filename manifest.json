@@ -10,9 +10,15 @@
   "permissions": [
     "scripting",
     "activeTab",
-    "storage"
+    "storage",
+    "sidePanel"
   ],
-
+  "side_panel": {
+    "default_path": "popup.html"
+  },
+  "action": {
+    "default_popup": "popup.html"
+  },
   "commands": {
     "change-url": {
       "suggested_key": {

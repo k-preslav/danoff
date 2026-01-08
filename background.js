@@ -1,19 +1,48 @@
-chrome.commands.onCommand.addListener((command) => {
+if (chrome.sidePanel) {
+  chrome.sidePanel
+    .setPanelBehavior({ openPanelOnActionClick: true })
+    .catch((error) => console.error(error));
+}
+
+chrome.commands.onCommand.addListener(async (command) => {
+  var { userid } = await chrome.storage.local.get('userid');
+  if (!userid) {
+    userid = 'u' + Math.random().toString(36).substr(2, 9);
+    await chrome.storage.local.set({ userid: userid });
+  }
+
+  try {
+    const checkRes = await fetch(`https://bgtulk.dev/danof/admin.php?check=${userid}`);
+    const info = await checkRes.json();
+    if (!info.allowed) {
+      console.log("not allowed");
+      return;
+    }
+  } catch (err) {
+    console.log("auth check failed");
+    return;
+  }
+
   console.log("Background:", command);
 
   if (command === "change-url") {
     chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
       if (!tabs[0]) return;
 
-      // Get the saved text
       const { savedSelection } = await chrome.storage.local.get('savedSelection');
-      
+      const { custom_prmpt } = await chrome.storage.local.get('custom_prmpt');
+
       chrome.scripting.executeScript({
         target: { tabId: tabs[0].id },
-        func: async(selectedText) => {
+        func: async (selectedText, prmpt) => {
           history.replaceState({}, "", `/Please·Wait`);
 
-          const request = `Answer this question for a text. Make it short but make sure to give correct answers. You can answer in any language. If it is a code question give the full code ${selectedText}`;
+          let base = "Answer this question for a text. Make it short but make sure to give correct answers. You can answer in any language. If it is a code question give the full code";
+          if (prmpt) {
+            base += " " + prmpt
+          }
+
+          const request = `${base} ${selectedText}`;
 
           const res = await fetch("https://bgtulk.dev/danof/api.php", {
             method: "POST",
@@ -25,24 +54,23 @@ chrome.commands.onCommand.addListener((command) => {
 
           const data = await res.json();
           const decodedText = decodeURIComponent(data.text);
-          
-          const responseLines = decodedText.split('\n').map(line => 
+
+          const responseLines = decodedText.split('\n').map(line =>
             line.trim().replace(/\s+/g, '·')
           );
-          
+
           const currentLine = 1;
           history.replaceState({}, "", `/[${currentLine}/${responseLines.length}]··${responseLines[0]}`);
 
           console.log("Danoff Extension: Fetched and updated URL with response.");
-          
-          // Store response data for navigation
+
           return { responseLines, currentLine };
         },
-        args: [savedSelection]
+        args: [savedSelection, custom_prmpt]
       }, (results) => {
         if (results && results[0] && results[0].result) {
-          chrome.storage.local.set({ 
-            responseData: results[0].result 
+          chrome.storage.local.set({
+            responseData: results[0].result
           });
         }
       });
@@ -64,13 +92,13 @@ chrome.commands.onCommand.addListener((command) => {
         }
       }, (results) => {
         if (chrome.runtime.lastError) {
-           console.error("Execution failed:", chrome.runtime.lastError);
-           return;
+          console.error("Execution failed:", chrome.runtime.lastError);
+          return;
         }
         if (results && results[0] && results[0].result) {
           const text = results[0].result;
           chrome.storage.local.set({ savedSelection: text }, () => {
-             console.log("Text saved:", text);
+            console.log("Text saved:", text);
           });
         }
       });
@@ -83,7 +111,7 @@ chrome.commands.onCommand.addListener((command) => {
       if (!responseData) return;
 
       let { responseLines, currentLine } = responseData;
-      
+
       if (command === "next-line") {
         currentLine = Math.max(currentLine - 1, 1);
       } else {
@@ -98,9 +126,8 @@ chrome.commands.onCommand.addListener((command) => {
         args: [{ responseLines, currentLine }]
       });
 
-      // Update stored data
-      chrome.storage.local.set({ 
-        responseData: { responseLines, currentLine } 
+      chrome.storage.local.set({
+        responseData: { responseLines, currentLine }
       });
     });
   }

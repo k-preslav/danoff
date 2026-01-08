@@ -1,10 +1,159 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>Prompt Extension</title>
-  </head>
-  <body>
-    <input type="text" id="currentPrompt" placeholder="Enter current prompt">
-    <script src="popup.js"></script>
-  </body>
+
+<head>
+  <title>danoff settings</title>
+  <style>
+    body {
+      width: auto;
+      padding: 20px;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #fdf6e3;
+      color: #5c4b37;
+      margin: 0;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    h3 {
+      margin: 0 0 10px 0;
+      font-size: 18px;
+      text-align: center;
+      letter-spacing: 1px;
+    }
+
+    textarea {
+      width: 100%;
+      height: 80px;
+      padding: 12px;
+      border: 2px solid #e6d5b8;
+      border-radius: 12px;
+      background: #fffcf5;
+      color: #5c4b37;
+      box-sizing: border-box;
+      resize: none;
+      outline: none;
+      font-size: 13px;
+    }
+
+    textarea:focus {
+      border-color: #d4a373;
+    }
+
+    #btn_save,
+    #btn_add_tp {
+      background: #d4a373;
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.3s;
+    }
+
+    #btn_save:hover,
+    #btn_add_tp:hover {
+      background: #bc8a5f;
+    }
+
+    .templats {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 5px;
+      max-height: 150px;
+      overflow-y: auto;
+    }
+
+    .tp-item {
+      display: flex;
+      gap: 5px;
+      align-items: center;
+    }
+
+    .tp-btn {
+      flex: 1;
+      background: #e6d5b8;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 12px;
+      cursor: pointer;
+      color: #5c4b37;
+      text-align: left;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .del-tp {
+      background: #e6b8b8;
+      border: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      cursor: pointer;
+      color: #5c3737;
+      font-size: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hint {
+      font-size: 11px;
+      color: #a69076;
+      text-align: center;
+    }
+
+    .add-box {
+      display: flex;
+      gap: 5px;
+    }
+
+    #tp_name {
+      flex: 1;
+      height: auto;
+      padding: 6px;
+      border-radius: 8px;
+      font-size: 12px;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="wait_screen"
+    style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#fdf6e3; z-index:100; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:20px; box-sizing:border-box;">
+    <h2 style="color:#d4a373;">Wait!</h2>
+    <p>Waiting for admin to whitelist you!</p>
+    <div id="uid_display" style="font-size:10px; color:#a69076; margin-top:10px;"></div>
+  </div>
+
+  <div class="container" id="main_cont">
+    <h3>settings</h3>
+
+    <textarea id="prmpt" placeholder="add your custom instructions here..."></textarea>
+
+    <div class="add-box">
+      <input type="text" id="tp_name" placeholder="preset name...">
+      <button id="btn_add_tp">add</button>
+    </div>
+
+    <div class="templats" id="tpl_cont">
+    </div>
+
+    <button id="btn_save">save changes</button>
+
+    <div class="hint">the dots in URL are spaces</div>
+    <div class="hint">If teacher asks YOU ARE NOT USING THIS EXTENSION!</div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+
 </html>
