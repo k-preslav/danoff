@@ -13,6 +13,9 @@
     "storage",
     "sidePanel"
   ],
+  "host_permissions": [
+    "https://api.groq.com/*"
+  ],
   "side_panel": {
     "default_path": "popup.html"
   },

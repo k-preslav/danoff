@@ -9,33 +9,21 @@ var ud = document.getElementById("uid_display")
 
 var user_tpls = []
 
-async function check_status() {
+
+
+async function init_user() {
     var { userid } = await chrome.storage.local.get('userid')
     if (!userid) {
         userid = 'u' + Math.random().toString(36).substr(2, 9)
         await chrome.storage.local.set({ userid: userid })
     }
-
-    ud.innerText = "ID: " + userid
-
-    try {
-        const r = await fetch(`https://bgtulk.dev/danof/admin.php?check=${userid}`)
-        const d = await r.json()
-        if (d.allowed) {
-            ws.style.display = "none"
-            mc.style.display = "flex"
-        } else {
-            ws.style.display = "flex"
-            mc.style.display = "none"
-        }
-    } catch (e) {
-        console.log("fetch err")
-        ws.style.display = "flex"
-        mc.style.display = "none"
-    }
+    if (ud) ud.innerText = "ID: " + userid
 }
+init_user()
 
-check_status()
+if (ws) ws.style.display = "none"
+if (mc) mc.style.display = "flex"
+
 
 
 function render_tpls() {
