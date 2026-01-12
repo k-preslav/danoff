@@ -39,7 +39,15 @@ chrome.commands.onCommand.addListener(async (command) => {
 
 
 
-      var api_k = "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"
+      var api_k = ""
+      try {
+        const env_req = await fetch('./.env')
+        const env_txt = await env_req.text()
+        const match = env_txt.match(/GROQ_API_KEY=(.*)/)
+        if (match) api_k = match[1].trim()
+      } catch (e) {
+        console.log("no env")
+      }
       var url = "https://api.groq.com/openai/v1/chat/completions"
 
       var pay_load = {
