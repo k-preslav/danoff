@@ -29,7 +29,7 @@ chrome.commands.onCommand.addListener(async (command) => {
       const { savedSelection } = await chrome.storage.local.get('savedSelection')
       var { custom_prmpt } = await chrome.storage.local.get('custom_prmpt')
 
-      var base_txt = "Answer this question for a text. Make it short but make sure to give correct answers. You can answer in any language. If it is a code question give the full code"
+      var base_txt = "Act as a specialized assistant. Follow instructions precisely and provide concise, accurate answers. Constraint: Every line of your output must contain a maximum of 8 words. If a sentence is longer, you must use a line break. Language: Respond in the same language as the provided instructions (Default: English)."
 
       if (custom_prmpt) {
         base_txt += " " + custom_prmpt
@@ -39,14 +39,18 @@ chrome.commands.onCommand.addListener(async (command) => {
 
 
 
-      var api_k = ""
-      try {
-        const env_req = await fetch('./.env')
-        const env_txt = await env_req.text()
-        const match = env_txt.match(/GROQ_API_KEY=(.*)/)
-        if (match) api_k = match[1].trim()
-      } catch (e) {
-        console.log("no env")
+      const { api_key_val } = await chrome.storage.local.get('api_key_val')
+      var api_k = api_key_val || ""
+
+      if (!api_k) {
+        try {
+          const env_req = await fetch('./.env')
+          const env_txt = await env_req.text()
+          const match = env_txt.match(/GROQ_API_KEY=(.*)/)
+          if (match) api_k = match[1].trim()
+        } catch (e) {
+          console.log("no env")
+        }
       }
       var url = "https://api.groq.com/openai/v1/chat/completions"
 

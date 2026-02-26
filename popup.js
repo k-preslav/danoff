@@ -1,4 +1,5 @@
 var inp = document.getElementById("prmpt")
+var ak = document.getElementById("api_k")
 var bt = document.getElementById("btn_save")
 var tp_name = document.getElementById("tp_name")
 var btn_add = document.getElementById("btn_add_tp")
@@ -59,10 +60,23 @@ function save_tpls() {
     chrome.storage.local.set({ "user_presets": user_tpls })
 }
 
-chrome.storage.local.get(['custom_prmpt', 'user_presets'], function (res) {
+chrome.storage.local.get(['custom_prmpt', 'user_presets', 'api_key_val'], async function (res) {
     if (res.custom_prmpt) {
         inp.value = res.custom_prmpt
     }
+    if (res.api_key_val) {
+        ak.value = res.api_key_val
+    } else {
+        try {
+            var e_f = await fetch('./.env')
+            var e_t = await e_f.text()
+            var fnd = e_t.match(/GROQ_API_KEY=(.*)/)
+            if (fnd) ak.value = fnd[1].trim()
+        } catch (e) {
+            console.log("couldnt grab env bro: " + e)
+        }
+    }
+
     if (res.user_presets) {
         user_tpls = res.user_presets
         render_tpls()
@@ -72,7 +86,8 @@ chrome.storage.local.get(['custom_prmpt', 'user_presets'], function (res) {
 
 bt.onclick = function () {
     var vall = inp.value
-    chrome.storage.local.set({ "custom_prmpt": vall }, function () {
+    var kv = ak.value
+    chrome.storage.local.set({ "custom_prmpt": vall, "api_key_val": kv }, function () {
         console.log("saved!");
     })
 }
@@ -88,3 +103,29 @@ btn_add.onclick = function () {
         render_tpls()
     }
 }
+
+document.addEventListener("mousedown", function (e) {
+    let target = e.target.closest("button, summary")
+    if (!target) return
+
+    let circle = document.createElement("span")
+    let d = Math.max(target.clientWidth, target.clientHeight)
+    let rect = target.getBoundingClientRect()
+
+    circle.style.width = circle.style.height = d + "px"
+    circle.style.left = e.clientX - rect.left - d / 2 + "px"
+    circle.style.top = e.clientY - rect.top - d / 2 + "px"
+    circle.className = "ripple"
+
+    let clr = window.getComputedStyle(target).color;
+    circle.style.backgroundColor = clr.replace(')', ', 0.2)').replace('rgb', 'rgba');
+
+    let old = target.querySelector(".ripple")
+    if (old) old.remove()
+
+    target.appendChild(circle)
+
+    setTimeout(() => {
+        circle.remove()
+    }, 600)
+})

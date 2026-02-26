@@ -32,4 +32,4 @@ This extension requires a Groq API key to function.
 
 1. Select any text on a webpage save it with ctrl+shift+l (`Command+Shift+L`).
 2. Press the shortcut (Default: `Ctrl+Shift+K` or `Command+Shift+K`).
-3. The page URL will temporarily change to display the AI's response.
+3. The page URL will temporarily change to display the AI's response.      
