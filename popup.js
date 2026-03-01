@@ -7,8 +7,43 @@ var tpl_cont = document.getElementById("tpl_cont")
 var ws = document.getElementById("wait_screen")
 var mc = document.getElementById("main_cont")
 var ud = document.getElementById("uid_display")
+var sc_list = document.getElementById("sc_list")
+var btn_sc = document.getElementById("btn_open_sc")
 
 var user_tpls = []
+
+
+function load_shorcuts(){
+    if(!chrome.commands) return
+    chrome.commands.getAll(function(cmds){
+        sc_list.innerHTML = ""
+        for(var c of cmds){
+            if(!c.name || c.name === "_execute_action") continue
+            var row = document.createElement("div")
+            row.className = "sc-row"
+
+            var nm = document.createElement("span")
+            nm.className = "sc-name"
+            nm.innerText = c.description || c.name
+
+            var ky = document.createElement("span")
+            ky.className = "sc-key"
+            ky.innerText = c.shortcut || "not set"
+
+            row.appendChild(nm)
+            row.appendChild(ky)
+            sc_list.appendChild(row)
+        }
+    })
+}
+load_shorcuts()
+
+if(btn_sc){
+    btn_sc.onclick = function(){
+        chrome.tabs.create({ url: "chrome://extensions/shortcuts" })
+
+    }
+}
 
 
 

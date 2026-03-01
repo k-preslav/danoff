@@ -28,7 +28,7 @@
         "default": "Ctrl+Shift+K",
         "mac": "Command+Shift+K"
       },
-      "description": "Change URL without navigation"
+      "description": "Get responce in the url"
     },
     "save-selected-text": {
       "suggested_key": {

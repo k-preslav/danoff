@@ -206,6 +206,55 @@
       border-radius: 8px;
       font-size: 12px;
     }
+
+    .sc-list{
+      display:flex;
+      flex-direction: column;
+      gap:6px;   
+      margin-top:8px;
+    }
+    .sc-row{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:5px 8px;
+      background: #f5eed8;
+      border-radius:8px;
+      font-size:12px;
+    }
+    .sc-row .sc-name{
+      color:#5c4b37;
+      font-weight: 600;
+    }
+    .sc-row .sc-key{
+      color: #d4a373;      
+      font-size:11px;
+      background:#fffcf5;
+      padding:2px 8px;
+      border-radius:6px;
+      border:1px solid #e6d5b8;
+    }
+    #btn_open_sc{
+      margin-top:8px;
+      background: #d4a373;
+      color:white;
+      border:none;
+      padding:8px;
+      border-radius:10px;
+      cursor:pointer;
+      font-weight:bold;
+      font-size:12px;
+      width:100%;
+      transition: background 0.3s cubic-bezier(0.2,0,0,1), transform 0.2s cubic-bezier(0.2,0,0,1);
+      position:relative;
+      overflow:hidden;
+    }
+    #btn_open_sc:hover{
+      background:#bc8a5f;
+    }
+    #btn_open_sc:active{
+      transform:scale(0.98);
+    }
   </style>
 </head>
 
@@ -225,6 +274,13 @@
       <div class="api-hint">get your <b>free</b> key from <a href="https://console.groq.com/keys" target="_blank"
           style="color:#d4a373;">console.groq.com/keys</a></div>
       <input type="password" id="api_k" placeholder="api key here...">
+    </details>
+
+    <details>
+      <summary>shortcut settings</summary>
+      <div class="sc-list" id="sc_list"></div>
+      <button id="btn_open_sc">change in chrome settings</button>
+
     </details>
 
     <textarea id="prmpt" placeholder="add your custom instructions here..."></textarea>
