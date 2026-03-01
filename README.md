@@ -39,3 +39,5 @@ GROQ_API_KEY=your_api_key_here
 2. Press the shortcut (Default: `Ctrl+Shift+K` or `Command+Shift+K`).
 3. The page URL will temporarily change to display the AI's response.
 
+* Ensure no other shortcuts are interfering, as this will prevent it from working. You can verify if the text is being selected after using the first shortcut by checking the browser console.
+
