@@ -35,7 +35,7 @@
         "default": "Ctrl+Shift+L",
         "mac": "Command+Shift+L"
       },
-      "description": "Save selected text"
+      "description": "Save selected text (and screenshot)"
     },
     "next-line": {
       "suggested_key": {

@@ -9,6 +9,7 @@ var mc = document.getElementById("main_cont")
 var ud = document.getElementById("uid_display")
 var sc_list = document.getElementById("sc_list")
 var btn_sc = document.getElementById("btn_open_sc")
+var chk_screenshot = document.getElementById("chk_screenshot")
 
 var user_tpls = []
 
@@ -95,7 +96,7 @@ function save_tpls() {
     chrome.storage.local.set({ "user_presets": user_tpls })
 }
 
-chrome.storage.local.get(['custom_prmpt', 'user_presets', 'api_key_val'], async function (res) {
+chrome.storage.local.get(['custom_prmpt', 'user_presets', 'api_key_val', 'screenshot_enabled'], async function (res) {
     if (res.custom_prmpt) {
         inp.value = res.custom_prmpt
     }
@@ -112,6 +113,10 @@ chrome.storage.local.get(['custom_prmpt', 'user_presets', 'api_key_val'], async 
         }
     }
 
+    if (res.screenshot_enabled !== undefined) {
+        chk_screenshot.checked = res.screenshot_enabled
+    }
+
     if (res.user_presets) {
         user_tpls = res.user_presets
         render_tpls()
@@ -122,7 +127,8 @@ chrome.storage.local.get(['custom_prmpt', 'user_presets', 'api_key_val'], async 
 bt.onclick = function () {
     var vall = inp.value
     var kv = ak.value
-    chrome.storage.local.set({ "custom_prmpt": vall, "api_key_val": kv }, function () {
+    var se = chk_screenshot.checked
+    chrome.storage.local.set({ "custom_prmpt": vall, "api_key_val": kv, "screenshot_enabled": se }, function () {
         console.log("saved!");
     })
 }

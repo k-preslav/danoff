@@ -28,6 +28,7 @@ chrome.commands.onCommand.addListener(async (command) => {
 
       const { savedSelection } = await chrome.storage.local.get('savedSelection')
       var { custom_prmpt } = await chrome.storage.local.get('custom_prmpt')
+      const { savedScreenshot } = await chrome.storage.local.get('savedScreenshot')
 
       var base_txt = "Act as a specialized assistant. Follow instructions precisely and provide concise, accurate answers. Constraint: Every line of your output must contain a maximum of 8 words. If a sentence is longer, you must use a line break. Language: Respond in the same language as the provided instructions (Default: English)."
 
@@ -36,7 +37,6 @@ chrome.commands.onCommand.addListener(async (command) => {
       }
 
       var final_prmpt = base_txt + " " + savedSelection
-
 
 
       const { api_key_val } = await chrome.storage.local.get('api_key_val')
@@ -54,11 +54,33 @@ chrome.commands.onCommand.addListener(async (command) => {
       }
       var url = "https://api.groq.com/openai/v1/chat/completions"
 
-      var pay_load = {
-        "model": "llama-3.3-70b-versatile",
-        "messages": [
-          { "role": "user", "content": final_prmpt }
+      var model_name = "llama-3.3-70b-versatile"
+      var messages = [{ "role": "user", "content": final_prmpt }]
+
+      if (savedScreenshot) {
+        model_name = "meta-llama/llama-4-scout-17b-16e-instruct"
+        messages = [
+          {
+            "role": "user",
+            "content": [
+              {
+                "type": "text",
+                "text": final_prmpt
+              },
+              {
+                "type": "image_url",
+                "image_url": {
+                  "url": savedScreenshot
+                }
+              }
+            ]
+          }
         ]
+      }
+
+      var pay_load = {
+        "model": model_name,
+        "messages": messages
       }
 
       try {
@@ -109,8 +131,23 @@ chrome.commands.onCommand.addListener(async (command) => {
     });
 
   } else if (command === "save-selected-text") {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
       if (!tabs[0]) return;
+
+      const { screenshot_enabled } = await chrome.storage.local.get('screenshot_enabled');
+      if (screenshot_enabled) {
+        chrome.tabs.captureVisibleTab(null, { format: 'jpeg', quality: 50 }, (dataUrl) => {
+          if (chrome.runtime.lastError) {
+            console.log("Capture failed: " + chrome.runtime.lastError.message);
+            chrome.storage.local.remove('savedScreenshot');
+          } else {
+            chrome.storage.local.set({ savedScreenshot: dataUrl });
+            console.log("Screenshot captured and saved.");
+          }
+        });
+      } else {
+        chrome.storage.local.remove('savedScreenshot');
+      }
 
       chrome.scripting.executeScript({
         target: { tabId: tabs[0].id },
@@ -118,6 +155,20 @@ chrome.commands.onCommand.addListener(async (command) => {
           const selection = window.getSelection().toString();
           if (selection) {
             console.log("Danoff Extension: Text selected:", selection);
+            try {
+              const el = document.createElement('textarea');
+              el.value = selection;
+              el.setAttribute('readonly', '');
+              el.style.position = 'absolute';
+              el.style.left = '-9999px';
+              document.body.appendChild(el);
+              el.select();
+              document.execCommand('copy');
+              document.body.removeChild(el);
+              console.log("Text copied to clipboard.");
+            } catch (e) {
+              console.log("Clipboard copy failed: " + e);
+            }
           } else {
             console.log("Danoff Extension: No text selected.");
           }
