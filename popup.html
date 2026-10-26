@@ -27,6 +27,9 @@
     }
 
     textarea,
+    select,
+    #custom_vision_model,
+    #custom_text_model,
     #api_k {
       width: 100%;
       padding: 12px;
@@ -45,10 +48,45 @@
       resize: none;
     }
 
+    select:focus,
+    #custom_vision_model:focus,
+    #custom_text_model:focus,
     textarea:focus,
     #api_k:focus {
       border-color: #d4a373;
       box-shadow: 0 0 0 2px rgba(212, 163, 115, 0.2);
+    }
+
+    .model-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: #5c4b37;
+      margin-top: 8px;
+      margin-bottom: 4px;
+    }
+
+    #btn_refresh_models {
+      background: #e6d5b8;
+      color: #5c4b37;
+      border: none;
+      padding: 8px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 12px;
+      width: 100%;
+      transition: background 0.3s cubic-bezier(0.2, 0, 0, 1), transform 0.2s cubic-bezier(0.2, 0, 0, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    #btn_refresh_models:hover {
+      background: #dcd0b1;
+    }
+
+    #btn_refresh_models:active {
+      transform: scale(0.98);
     }
 
     details {
@@ -280,7 +318,25 @@
       <summary>shortcut settings</summary>
       <div class="sc-list" id="sc_list"></div>
       <button id="btn_open_sc">change in chrome settings</button>
+    </details>
 
+    <details>
+      <summary>model settings</summary>
+      <div class="api-hint">dynamic discovery with auto-fallback</div>
+      <label class="model-label">vision model (screenshots)</label>
+      <select id="sel_vision_model">
+        <option value="auto">Auto-detect</option>
+      </select>
+      <input type="text" id="custom_vision_model" placeholder="custom vision model id..." style="display:none; margin-top:6px;">
+
+      <label class="model-label">text model</label>
+      <select id="sel_text_model">
+        <option value="auto">Auto-detect</option>
+      </select>
+      <input type="text" id="custom_text_model" placeholder="custom text model id..." style="display:none; margin-top:6px;">
+
+      <button id="btn_refresh_models" type="button" style="margin-top:10px;">check available models</button>
+      <div id="models_status" class="hint" style="margin-top:6px;"></div>
     </details>
 
     <textarea id="prmpt" placeholder="add your custom instructions here..."></textarea>
@@ -298,6 +354,11 @@
     <div style="display:flex; align-items:center; gap:10px; margin-top:10px; background:#fffcf5; padding:10px; border-radius:12px; border:2px solid #e6d5b8;">
       <input type="checkbox" id="chk_screenshot" style="width:20px; height:20px; cursor:pointer;">
       <label for="chk_screenshot" style="font-size:14px; color:#5c4b37; cursor:pointer; font-weight:bold;">Include Screenshot</label>
+    </div>
+
+    <div style="display:flex; align-items:center; gap:10px; margin-top:8px; background:#fffcf5; padding:10px; border-radius:12px; border:2px solid #e6d5b8;">
+      <input type="checkbox" id="chk_autotext" style="width:20px; height:20px; cursor:pointer;">
+      <label for="chk_autotext" style="font-size:14px; color:#5c4b37; cursor:pointer; font-weight:bold;">Auto-grab Entire Page Text</label>
     </div>
 
     <div class="hint">the dots in URL are spaces</div>

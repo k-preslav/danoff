@@ -35,9 +35,12 @@ GROQ_API_KEY=your_api_key_here
 
 ## Usage
 
-1. Select any text on a webpage, then save it with `Ctrl+Shift+L` (`Command+Shift+L` on Mac).
-2. Press the shortcut (Default: `Ctrl+Shift+K` or `Command+Shift+K`).
-3. The page URL will temporarily change to display the AI's response.
+1. Save input with `Ctrl+Shift+L` (`Command+Shift+L` on Mac). Depending on settings, this saves selected text, takes a screenshot, or auto-grabs the whole page text invisibly.
+2. Press `Ctrl+Shift+K` (`Command+Shift+K` on Mac) to request the answer.
+3. Browse lines with `Ctrl+Shift+Down` / `Ctrl+Shift+Up`.
+4. Restore clean URL at any time by pressing `Escape`.
+5. Refreshing or navigating the page automatically restores the clean original URL without breaking the website.
 
 * Ensure no other shortcuts are interfering, as this will prevent it from working. You can verify if the text is being selected after using the first shortcut by checking the browser console.
+
 
