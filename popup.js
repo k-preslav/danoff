@@ -1,3 +1,33 @@
+const browserApi = globalThis.browser || globalThis.chrome
+
+function storageGet(keys) {
+    const result = browserApi.storage.local.get(keys)
+    return result && typeof result.then === "function"
+        ? result
+        : new Promise((resolve) => browserApi.storage.local.get(keys, resolve))
+}
+
+function storageSet(values) {
+    const result = browserApi.storage.local.set(values)
+    return result && typeof result.then === "function"
+        ? result
+        : new Promise((resolve) => browserApi.storage.local.set(values, resolve))
+}
+
+function commandsGetAll() {
+    const result = browserApi.commands.getAll()
+    return result && typeof result.then === "function"
+        ? result
+        : new Promise((resolve) => browserApi.commands.getAll(resolve))
+}
+
+function runtimeSendMessage(message) {
+    const result = browserApi.runtime.sendMessage(message)
+    return result && typeof result.then === "function"
+        ? result
+        : new Promise((resolve) => browserApi.runtime.sendMessage(message, resolve))
+}
+
 var inp = document.getElementById("prmpt")
 var ak = document.getElementById("api_k")
 var bt = document.getElementById("btn_save")
@@ -21,8 +51,8 @@ var st_models = document.getElementById("models_status")
 var user_tpls = []
 
 function load_shorcuts() {
-    if (!chrome.commands) return
-    chrome.commands.getAll(function (cmds) {
+    if (!browserApi.commands) return
+    commandsGetAll().then(function (cmds) {
         sc_list.innerHTML = ""
         for (var c of cmds) {
             if (!c.name || c.name === "_execute_action") continue
@@ -47,15 +77,19 @@ load_shorcuts()
 
 if (btn_sc) {
     btn_sc.onclick = function () {
-        chrome.tabs.create({ url: "chrome://extensions/shortcuts" })
+        if (typeof browser !== "undefined") {
+            browserApi.tabs.create({ url: "https://support.mozilla.org/kb/manage-extension-shortcuts-firefox" })
+        } else {
+            browserApi.tabs.create({ url: "chrome://extensions/shortcuts" })
+        }
     }
 }
 
 async function init_user() {
-    var { userid } = await chrome.storage.local.get('userid')
+    var { userid } = await storageGet('userid')
     if (!userid) {
         userid = 'u' + Math.random().toString(36).substr(2, 9)
-        await chrome.storage.local.set({ userid: userid })
+        await storageSet({ userid: userid })
     }
     if (ud) ud.innerText = "ID: " + userid
 }
@@ -94,7 +128,7 @@ function render_tpls() {
 }
 
 function save_tpls() {
-    chrome.storage.local.set({ "user_presets": user_tpls })
+    storageSet({ "user_presets": user_tpls })
 }
 
 function populateModelSelects(cached, userVision, userText, workingVision, workingText) {
@@ -194,10 +228,10 @@ if (sel_tm) {
 if (btn_rfm) {
     btn_rfm.onclick = function () {
         if (st_models) st_models.innerText = "checking models from Groq..."
-        chrome.runtime.sendMessage({ action: "refresh-models" }, function (res) {
+        runtimeSendMessage({ action: "refresh-models" }).then(function (res) {
             if (res && res.all && res.all.length) {
                 if (st_models) st_models.innerText = res.text.length + " text, " + res.vision.length + " vision models active"
-                chrome.storage.local.get(['user_vision_model', 'user_text_model', 'working_vision_model', 'working_text_model'], function (d) {
+                storageGet(['user_vision_model', 'user_text_model', 'working_vision_model', 'working_text_model']).then(function (d) {
                     populateModelSelects(res, d.user_vision_model, d.user_text_model, d.working_vision_model, d.working_text_model)
                 })
             } else {
@@ -207,7 +241,7 @@ if (btn_rfm) {
     }
 }
 
-chrome.storage.local.get([
+storageGet([
     'custom_prmpt',
     'user_presets',
     'api_key_val',
@@ -218,7 +252,7 @@ chrome.storage.local.get([
     'cached_models',
     'working_vision_model',
     'working_text_model'
-], async function (res) {
+]).then(async function (res) {
     if (res.custom_prmpt) {
         inp.value = res.custom_prmpt
     }
@@ -257,7 +291,7 @@ chrome.storage.local.get([
     )
 
     if (ak.value && (!res.cached_models || !res.cached_models.all || !res.cached_models.all.length)) {
-        chrome.runtime.sendMessage({ action: "refresh-models" }, function (fresh) {
+        runtimeSendMessage({ action: "refresh-models" }).then(function (fresh) {
             if (fresh && fresh.all) {
                 populateModelSelects(fresh, res.user_vision_model, res.user_text_model, res.working_vision_model, res.working_text_model)
             }
@@ -273,7 +307,7 @@ bt.onclick = function () {
     var uvm = (sel_vm && sel_vm.value === "custom" && inp_cvm) ? inp_cvm.value.trim() : (sel_vm ? sel_vm.value : "auto")
     var utm = (sel_tm && sel_tm.value === "custom" && inp_ctm) ? inp_ctm.value.trim() : (sel_tm ? sel_tm.value : "auto")
 
-    chrome.storage.local.set({
+    storageSet({
         "custom_prmpt": vall,
         "api_key_val": kv,
         "screenshot_enabled": se,
