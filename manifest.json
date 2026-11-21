@@ -2,7 +2,7 @@
   "name": "danoff",
   "short_name": "danoff",
   "description": "Danoff.",
-  "version": "1.0",
+  "version": "1.6",
   "manifest_version": 3,
   "background": {
     "service_worker": "background.js",
