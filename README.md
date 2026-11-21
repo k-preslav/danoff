@@ -1,13 +1,22 @@
 # Danoff Extension
 
-A simple Chrome extension that secretly helps you using the Groq AI API.
+A simple Chrome and Firefox extension that helps you using the Groq AI API.
 
 ## Installation
+
+### Chrome
 
 1. Clone or download this repository.
 2. Open Chrome and navigate to `chrome://extensions/`.
 3. Enable "Developer mode" in the top right.
 4. Click "Load unpacked" and select the extension folder.
+
+### Firefox
+
+1. Clone or download this repository.
+2. Open Firefox and navigate to `about:debugging#/runtime/this-firefox`.
+3. Click "Load Temporary Add-on".
+4. Select `manifest.json` from the extension folder.
 
 ## Configuration
 

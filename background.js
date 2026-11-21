@@ -1,7 +1,38 @@
-if (chrome.sidePanel) {
-  chrome.sidePanel
-    .setPanelBehavior({ openPanelOnActionClick: true })
-    .catch((error) => console.error(error));
+const browserApi = globalThis.browser || globalThis.chrome;
+
+function storageGet(keys) {
+  const result = browserApi.storage.local.get(keys);
+  return result && typeof result.then === "function"
+    ? result
+    : new Promise((resolve) => browserApi.storage.local.get(keys, resolve));
+}
+
+function storageSet(values) {
+  const result = browserApi.storage.local.set(values);
+  return result && typeof result.then === "function"
+    ? result
+    : new Promise((resolve) => browserApi.storage.local.set(values, resolve));
+}
+
+function storageRemove(keys) {
+  const result = browserApi.storage.local.remove(keys);
+  return result && typeof result.then === "function"
+    ? result
+    : new Promise((resolve) => browserApi.storage.local.remove(keys, resolve));
+}
+
+function tabsQuery(queryInfo) {
+  const result = browserApi.tabs.query(queryInfo);
+  return result && typeof result.then === "function"
+    ? result
+    : new Promise((resolve) => browserApi.tabs.query(queryInfo, resolve));
+}
+
+function executeScript(details) {
+  const result = browserApi.scripting.executeScript(details);
+  return result && typeof result.then === "function"
+    ? result
+    : new Promise((resolve) => browserApi.scripting.executeScript(details, resolve));
 }
 
 const DEFAULT_VISION_MODELS = [
@@ -61,17 +92,28 @@ function restoreCleanUrl() {
 }
 
 function captureTab(windowId, retries = 1) {
+  const capture = browserApi.tabs.captureVisibleTab(
+    windowId || null,
+    { format: 'jpeg', quality: 50 }
+  );
+  if (capture && typeof capture.then === "function") {
+    return capture.catch((error) => {
+      if (retries > 0) {
+        return new Promise((resolve) => setTimeout(() => resolve(captureTab(windowId, retries - 1)), 600));
+      }
+      console.log("Capture failed:", error.message || error);
+      return null;
+    });
+  }
   return new Promise((resolve) => {
-    chrome.tabs.captureVisibleTab(windowId || null, { format: 'jpeg', quality: 50 }, (dataUrl) => {
-      if (chrome.runtime.lastError) {
+    browserApi.tabs.captureVisibleTab(windowId || null, { format: 'jpeg', quality: 50 }, (dataUrl) => {
+      if (browserApi.runtime.lastError) {
         if (retries > 0) {
-          setTimeout(() => {
-            captureTab(windowId, retries - 1).then(resolve);
-          }, 600);
-          return;
+          setTimeout(() => captureTab(windowId, retries - 1).then(resolve), 600);
+        } else {
+          console.log("Capture failed:", browserApi.runtime.lastError.message);
+          resolve(null);
         }
-        console.log("Capture failed:", chrome.runtime.lastError.message);
-        resolve(null);
       } else {
         resolve(dataUrl);
       }
@@ -80,8 +122,7 @@ function captureTab(windowId, retries = 1) {
 }
 
 function getSelectionText(tabId, autoGrabAll = false) {
-  return new Promise((resolve) => {
-    chrome.scripting.executeScript({
+  const result = browserApi.scripting.executeScript({
       target: { tabId: tabId },
       func: (grabAll) => {
         if (grabAll) {
@@ -111,8 +152,28 @@ function getSelectionText(tabId, autoGrabAll = false) {
         return sel;
       },
       args: [autoGrabAll]
+  });
+  if (result && typeof result.then === "function") {
+    return result.then((results) => results && results[0] ? results[0].result || "" : "");
+  }
+  return new Promise((resolve) => {
+    browserApi.scripting.executeScript({
+      target: { tabId: tabId },
+      func: (grabAll) => {
+        if (grabAll) {
+          try {
+            const raw = document.body ? (document.body.innerText || document.body.textContent || "") : "";
+            const cleaned = raw.replace(/\r\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+            return cleaned.slice(0, 30000);
+          } catch (e) {
+            return "";
+          }
+        }
+        return window.getSelection().toString().trim();
+      },
+      args: [autoGrabAll]
     }, (results) => {
-      if (chrome.runtime.lastError || !results || !results[0]) {
+      if (browserApi.runtime.lastError || !results || !results[0]) {
         resolve("");
       } else {
         resolve(results[0].result || "");
@@ -122,7 +183,7 @@ function getSelectionText(tabId, autoGrabAll = false) {
 }
 
 async function getApiKey() {
-  const { api_key_val } = await chrome.storage.local.get('api_key_val');
+  const { api_key_val } = await storageGet('api_key_val');
   if (api_key_val && api_key_val.trim()) return api_key_val.trim();
   try {
     const res = await fetch('./.env');
@@ -160,7 +221,7 @@ async function fetchAvailableModels(apiKey) {
       text: text,
       timestamp: Date.now()
     };
-    await chrome.storage.local.set({ cached_models: data });
+    await storageSet({ cached_models: data });
     return data;
   } catch (e) {
     return null;
@@ -169,14 +230,14 @@ async function fetchAvailableModels(apiKey) {
 
 async function getModels(apiKey, force = false) {
   if (!force) {
-    const { cached_models } = await chrome.storage.local.get('cached_models');
+    const { cached_models } = await storageGet('cached_models');
     if (cached_models && (Date.now() - (cached_models.timestamp || 0) < 3600000 * 12)) {
       return cached_models;
     }
   }
   const fresh = await fetchAvailableModels(apiKey);
   if (fresh) return fresh;
-  const { cached_models } = await chrome.storage.local.get('cached_models');
+  const { cached_models } = await storageGet('cached_models');
   return cached_models || null;
 }
 
@@ -234,7 +295,7 @@ async function resolveAndExecute(apiKey, prompt, screenshot) {
     user_text_model,
     working_vision_model,
     working_text_model
-  } = await chrome.storage.local.get([
+  } = await storageGet([
     'user_vision_model',
     'user_text_model',
     'working_vision_model',
@@ -266,7 +327,7 @@ async function resolveAndExecute(apiKey, prompt, screenshot) {
 
       const res = await requestCompletion(apiKey, model, messages);
       if (res.ok && res.data?.choices?.[0]?.message?.content) {
-        await chrome.storage.local.set({ working_vision_model: model });
+        await storageSet({ working_vision_model: model });
         return res.data.choices[0].message.content;
       }
 
@@ -298,7 +359,7 @@ async function resolveAndExecute(apiKey, prompt, screenshot) {
 
     const res = await requestCompletion(apiKey, model, messages);
     if (res.ok && res.data?.choices?.[0]?.message?.content) {
-      await chrome.storage.local.set({ working_text_model: model });
+      await storageSet({ working_text_model: model });
       return res.data.choices[0].message.content;
     }
 
@@ -319,7 +380,7 @@ async function resolveAndExecute(apiKey, prompt, screenshot) {
   return "API Error: " + (lastErrorMsg || "Could not complete request.");
 }
 
-chrome.runtime.onMessage.addListener((req, sender, sendResponse) => {
+browserApi.runtime.onMessage.addListener((req, sender, sendResponse) => {
   if (req.action === "refresh-models") {
     getApiKey().then(k => fetchAvailableModels(k)).then(data => {
       sendResponse(data);
@@ -328,17 +389,17 @@ chrome.runtime.onMessage.addListener((req, sender, sendResponse) => {
   }
 });
 
-chrome.commands.onCommand.addListener(async (command) => {
-  var { userid } = await chrome.storage.local.get('userid');
+browserApi.commands.onCommand.addListener(async (command) => {
+  var { userid } = await storageGet('userid');
   if (!userid) {
     userid = 'u' + Math.random().toString(36).substr(2, 9);
-    await chrome.storage.local.set({ userid: userid });
+    await storageSet({ userid: userid });
   }
 
   console.log("Background:", command);
 
   if (command === "change-url") {
-    chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
+    tabsQuery({ active: true, currentWindow: true }).then(async (tabs) => {
       if (!tabs[0]) return;
       const tab = tabs[0];
 
@@ -346,15 +407,15 @@ chrome.commands.onCommand.addListener(async (command) => {
         await pendingSavePromise;
       }
 
-      chrome.scripting.executeScript({
+      executeScript({
         target: { tabId: tab.id },
         func: applyUrlText,
         args: ["Please·Wait"]
       });
 
-      const { savedSelection } = await chrome.storage.local.get('savedSelection');
-      var { custom_prmpt } = await chrome.storage.local.get('custom_prmpt');
-      const { savedScreenshot } = await chrome.storage.local.get('savedScreenshot');
+      const { savedSelection } = await storageGet('savedSelection');
+      var { custom_prmpt } = await storageGet('custom_prmpt');
+      const { savedScreenshot } = await storageGet('savedScreenshot');
 
       var base_txt = "Act as a specialized assistant. Follow instructions precisely and provide concise, accurate answers. Constraint: Every line of your output must contain a maximum of 8 words. If a sentence is longer, you must use a line break. Language: Respond in the same language as the provided instructions (Default: English).";
 
@@ -380,13 +441,13 @@ chrome.commands.onCommand.addListener(async (command) => {
         var curr_l = 1;
         const lineText = `[${curr_l}/${lines_arr.length}]··${lines_arr[0]}`;
 
-        chrome.scripting.executeScript({
+        executeScript({
           target: { tabId: tab.id },
           func: applyUrlText,
           args: [lineText]
         });
 
-        chrome.storage.local.set({
+        storageSet({
           responseData: { responseLines: lines_arr, currentLine: curr_l }
         });
       } catch (e) {
@@ -395,26 +456,26 @@ chrome.commands.onCommand.addListener(async (command) => {
     });
 
   } else if (command === "save-selected-text") {
-    chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
+    tabsQuery({ active: true, currentWindow: true }).then(async (tabs) => {
       if (!tabs[0]) return;
       const tab = tabs[0];
 
-      chrome.scripting.executeScript({
+      executeScript({
         target: { tabId: tab.id },
         func: applyUrlText,
         args: ["Wait"]
       });
 
       pendingSavePromise = (async () => {
-        await chrome.storage.local.remove(['savedScreenshot', 'savedSelection']);
+        await storageRemove(['savedScreenshot', 'savedSelection']);
 
-        const { screenshot_enabled, autotext_enabled } = await chrome.storage.local.get(['screenshot_enabled', 'autotext_enabled']);
+        const { screenshot_enabled, autotext_enabled } = await storageGet(['screenshot_enabled', 'autotext_enabled']);
         const [screenshotData, selectionText] = await Promise.all([
           screenshot_enabled ? captureTab(tab.windowId) : Promise.resolve(null),
           getSelectionText(tab.id, !!autotext_enabled)
         ]);
 
-        await chrome.storage.local.set({
+        await storageSet({
           savedScreenshot: screenshotData || null,
           savedSelection: selectionText || ""
         });
@@ -423,16 +484,16 @@ chrome.commands.onCommand.addListener(async (command) => {
       await pendingSavePromise;
       pendingSavePromise = null;
 
-      chrome.scripting.executeScript({
+      executeScript({
         target: { tabId: tab.id },
         func: applyUrlText,
         args: ["Ready"]
       });
 
       setTimeout(() => {
-        chrome.tabs.query({ active: true, currentWindow: true }, (currentTabs) => {
+        tabsQuery({ active: true, currentWindow: true }).then((currentTabs) => {
           if (currentTabs[0] && currentTabs[0].id === tab.id) {
-            chrome.scripting.executeScript({
+            executeScript({
               target: { tabId: tab.id },
               func: () => {
                 if (window.__danoff_active_text === "Ready") {
@@ -451,10 +512,10 @@ chrome.commands.onCommand.addListener(async (command) => {
     });
 
   } else if (command === "next-line" || command === "previous-line") {
-    chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
+    tabsQuery({ active: true, currentWindow: true }).then(async (tabs) => {
       if (!tabs[0]) return;
 
-      const { responseData } = await chrome.storage.local.get('responseData');
+      const { responseData } = await storageGet('responseData');
       if (!responseData) return;
 
       let { responseLines, currentLine } = responseData;
@@ -467,26 +528,26 @@ chrome.commands.onCommand.addListener(async (command) => {
 
       const lineText = `[${currentLine}/${responseLines.length}]··${responseLines[currentLine - 1]}`;
 
-      chrome.scripting.executeScript({
+      executeScript({
         target: { tabId: tabs[0].id },
         func: applyUrlText,
         args: [lineText]
       });
 
-      chrome.storage.local.set({
+      storageSet({
         responseData: { responseLines, currentLine }
       });
     });
   } else if (command === "clear-url") {
-    chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
+    tabsQuery({ active: true, currentWindow: true }).then(async (tabs) => {
       if (!tabs[0]) return;
 
-      chrome.scripting.executeScript({
+      executeScript({
         target: { tabId: tabs[0].id },
         func: restoreCleanUrl
       });
 
-      chrome.storage.local.remove('responseData');
+      storageRemove('responseData');
     });
   }
 });
