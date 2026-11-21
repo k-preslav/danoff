@@ -15,7 +15,21 @@
     "unlimitedStorage"
   ],
   "host_permissions": [
-    "https://api.groq.com/*"
+    "https://api.groq.com/*",
+    "<all_urls>"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["focus-guard.js"],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": ["<all_urls>"],
+      "js": ["focus-bridge.js"],
+      "run_at": "document_start"
+    }
   ],
   "action": {
     "default_popup": "popup.html"

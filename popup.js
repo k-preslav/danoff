@@ -41,6 +41,7 @@ var sc_list = document.getElementById("sc_list")
 var btn_sc = document.getElementById("btn_open_sc")
 var chk_screenshot = document.getElementById("chk_screenshot")
 var chk_autotext = document.getElementById("chk_autotext")
+var chk_keep_focused = document.getElementById("chk_keep_focused")
 var sel_vm = document.getElementById("sel_vision_model")
 var inp_cvm = document.getElementById("custom_vision_model")
 var sel_tm = document.getElementById("sel_text_model")
@@ -247,6 +248,7 @@ storageGet([
     'api_key_val',
     'screenshot_enabled',
     'autotext_enabled',
+    'keep_focused_enabled',
     'user_vision_model',
     'user_text_model',
     'cached_models',
@@ -277,6 +279,10 @@ storageGet([
         chk_autotext.checked = res.autotext_enabled
     }
 
+    if (res.keep_focused_enabled !== undefined && chk_keep_focused) {
+        chk_keep_focused.checked = res.keep_focused_enabled
+    }
+
     if (res.user_presets) {
         user_tpls = res.user_presets
         render_tpls()
@@ -304,6 +310,7 @@ bt.onclick = function () {
     var kv = ak.value
     var se = chk_screenshot.checked
     var ate = chk_autotext ? chk_autotext.checked : false
+    var keepFocused = chk_keep_focused ? chk_keep_focused.checked : false
     var uvm = (sel_vm && sel_vm.value === "custom" && inp_cvm) ? inp_cvm.value.trim() : (sel_vm ? sel_vm.value : "auto")
     var utm = (sel_tm && sel_tm.value === "custom" && inp_ctm) ? inp_ctm.value.trim() : (sel_tm ? sel_tm.value : "auto")
 
@@ -312,6 +319,7 @@ bt.onclick = function () {
         "api_key_val": kv,
         "screenshot_enabled": se,
         "autotext_enabled": ate,
+        "keep_focused_enabled": keepFocused,
         "user_vision_model": uvm,
         "user_text_model": utm
     }, function () {

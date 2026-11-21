@@ -232,6 +232,30 @@
       text-align: center;
     }
 
+    .focus-setting {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+      background: #fffcf5;
+      padding: 10px;
+      border-radius: 12px;
+      border: 2px solid #e6d5b8;
+    }
+
+    .focus-setting input {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+    }
+
+    .focus-setting label {
+      font-size: 14px;
+      color: #5c4b37;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
     .add-box {
       display: flex;
       gap: 5px;
@@ -340,6 +364,12 @@
     </details>
 
     <textarea id="prmpt" placeholder="add your custom instructions here..."></textarea>
+
+    <div class="focus-setting">
+      <input type="checkbox" id="chk_keep_focused">
+      <label for="chk_keep_focused">Keep sites focused in background</label>
+    </div>
+    <div class="hint">Spoofs visibility and focus state on supported web pages.</div>
 
     <div class="add-box">
       <input type="text" id="tp_name" placeholder="preset name...">

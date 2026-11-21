@@ -52,4 +52,12 @@ GROQ_API_KEY=your_api_key_here
 
 * Ensure no other shortcuts are interfering, as this will prevent it from working. You can verify if the text is being selected after using the first shortcut by checking the browser console.
 
+## Keep sites focused
+
+Enable **Keep sites focused in background** in the extension popup to make supported pages report
+themselves as visible and focused while you work in another tab. The setting overrides the standard
+and legacy visibility properties, `document.hasFocus()`, and `window.focus()`/`window.blur()`;
+suppresses visibility, focus, and blur events; and prevents page scripts from changing the reported
+state. It is disabled by default and stored locally in the browser.
+
 
